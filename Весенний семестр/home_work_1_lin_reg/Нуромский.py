@@ -9,23 +9,33 @@ from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 
 df = pd.read_csv("garments_worker_productivity.csv")
 
-# Посмотрим корреляции
-plt.figure(figsize=(12,10), dpi= 80)
-sns.heatmap(df.corr(), xticklabels=df.corr().columns, yticklabels=df.corr().columns, cmap='RdYlGn', center=0, annot=True)
-plt.show()
-
-# Найдём самый предсказуемый параметр
-abs(df.corr()).sum()
-# будем предсказывать smv
-
 # Пожертвуем пятью строками чтобы всё было хорошо
 df = df.dropna()
 
-y = df.iloc[:, 6]
-x = pd.concat([df.iloc[:, 1], df.iloc[:, 4:6], df.iloc[:, 7:15]], axis=1)
+for i in range(df.iloc[:, 0].size):
+    date = df.iloc[i, 0].split("/")
+    st = date[2]
+    if int(date[1]) < 10:
+        st += "0"
+    st += date[1]
+    if int(date[0]) < 10:
+        st += "0"
+    st += date[0]
+    df.iloc[i, 0] = st
 
-for i in range(x.iloc[:, 0].size):
-    x.iloc[i, 0] = x.iloc[i, 0].replace("Quarter", "")
+for i in range(df.iloc[:, 1].size):
+    df.iloc[i, 1] = df.iloc[i, 1].replace("Quarter", "")
+
+for i in range(df.iloc[:, 3].size):
+    df.iloc[i, 3] = df.iloc[i, 3].replace("Monday", "1")
+    df.iloc[i, 3] = df.iloc[i, 3].replace("Tuesday", "2")
+    df.iloc[i, 3] = df.iloc[i, 3].replace("Wednesday", "3")
+    df.iloc[i, 3] = df.iloc[i, 3].replace("Thursday", "4")
+    df.iloc[i, 3] = df.iloc[i, 3].replace("Saturday", "6")
+    df.iloc[i, 3] = df.iloc[i, 3].replace("Sunday", "7")
+
+y = df.iloc[:, 14]
+x = pd.concat([df.iloc[:, 0:2], df.iloc[:, 3:14]], axis=1)
 
 # Создание модели регрессии
 reg = LinearRegression()
@@ -46,4 +56,4 @@ mean_absolute_error(y, y_pred)
 mean_squared_error(y, y_pred)
 r2_score(y, y_pred)
 
-# Получились посредственные результаты. Возможно, для получения лучших результатов, стоило бы не откидывать нечисловые данные, а преобразовать их в числовые
+# Получились довольно неплохие данные
